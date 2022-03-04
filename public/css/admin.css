@@ -1,0 +1,10 @@
+.bmhs-admin-area__error-msg {
+    padding: 10px;
+    background-color: #bb0c0c;
+    color: white;
+    border-radius: 3px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 4px 3px 10px 2px #00000050;
+    margin: 20px 0;
+}

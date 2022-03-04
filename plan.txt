@@ -1,0 +1,21 @@
+
+Goal: Create a plugin to look in a preset folder, read JSON files and import their data as products
+
+1) Need a backend to section to use the plugin
+
+2) Collect the files in a preset folder
+
+3) Read the files and then create or update products
+
+
+
+
+
+
+----------------- Batch Import -----------------
+
+Need to swap it so it reads the json in batches
+
+1) Initial request to create and return the row ID, and count the products.
+
+2) Create function to read a batch, then send a repsonse, loop till complete
