@@ -1,5 +1,4 @@
 <?php
-
 /*
 Plugin Name: Hagon Shocks Json Product Importer
 Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
@@ -11,6 +10,7 @@ License: A "Slug" license name e.g. GPL2
 Text Domain: bmhs-json-import
 */
 
+add_action("activated_plugin", "this_plugin_last");
 
 // Define plugin Constants
 define("BMHS_VERSION", "1.0.0");
@@ -22,10 +22,8 @@ define("BMHS_IMPORT_FOLDER", "/home/hagonshockseagle/public_html/sap/import");
 define("BMHS_EXPORT_FOLDER", "/home/hagonshockseagle/public_html/sap/export");
 define("BMHS_TABLE_NAME", "bmhs_importer");
 
-
 // Require Files
 require_once('bootstraps.php');
-
 
 // Pull in classes
 use Bird\Tools\Bootstraps;
@@ -37,7 +35,6 @@ function runBMHSPlugin(){
 
 // Activation Hook
 function runBMHSActivationHook(){
-
     // Create the custom table
     global $wpdb;
 
@@ -54,9 +51,39 @@ function runBMHSActivationHook(){
 
     require_once( ABSPATH . "wp-admin/includes/upgrade.php" );
     dbDelta( $sql );
+
+
+    // Add the product taxonomies
+    $newAttrs = [
+        "ModelNo"                   => "model-no",
+        "Type"                      => "shock-type",
+        "CapacityCCM"               => "capacity",
+        "CapacityRange"             => "capacity-range",
+        "CapacityRangeDescription"  => "capacity-description"
+    ];
+
+    $attributes = json_decode(json_encode(wc_get_attribute_taxonomies()),true);
+
+    $attrLabels = array_column($attributes, 'attribute_name');
+
+    foreach($newAttrs as $nAttr){
+        if(! in_array($nAttr, $attrLabels)){
+
+            $label = ucwords(str_replace("-", " ", $nAttr));
+
+            $args = array(
+                'slug'    => "pa_". $nAttr,
+                'name'   => __( $label, 'bmhs-json-import' ),
+                'type'    => 'select',
+                'orderby' => 'menu_order',
+                'has_archives'  => false,
+            );
+            wc_create_attribute( $args );
+        }
+    }
 }
 
-// Activation Hook
+// Deactivation Hook
 function runBMHSDeactivationHook(){
     global $wpdb;
     $table_name = $wpdb->prefix . BMHS_TABLE_NAME ;
@@ -64,17 +91,7 @@ function runBMHSDeactivationHook(){
     $wpdb->query($sql);
 }
 
-
 // Base actions and hooks
 add_action('init', 'runBMHSPlugin');
 register_activation_hook( __FILE__, "runBMHSActivationHook" );
 register_deactivation_hook( __FILE__, 'runBMHSDeactivationHook' );
-
-
-
-//use Bird\Models\Ftp;
-//
-//$ftp = new Ftp();
-//
-//var_dump($ftp->ftp_nlist("./images"));
-//die;

@@ -45,6 +45,7 @@ Class Admin
         // 1) Add in verification for user capabilities
         // 2) Nonce for the import form
 
+
         $options = $this->importer->getFileOptionsHtml($this->importer->getJsonFiles());
 
         $html = "

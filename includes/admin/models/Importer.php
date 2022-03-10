@@ -14,6 +14,7 @@ class Importer
     )
     {
         $this->ftp = $ftp;
+
     }
 
     /*** FILE FUNCTIONS ***/
@@ -273,6 +274,7 @@ class Importer
 
             // Assign item code to product meta
             $this->assignProductCode($productId, $product->ProductCode);
+            $this->assignAttributes($wcProduct->get_id(), $product);
         } else {
             // If no product was found, create the product
             $method = "Created";
@@ -300,6 +302,19 @@ class Importer
             $wcProductCats[] = $category_ids["Years Value"];
             $wcProduct->set_category_ids($wcProductCats);
 
+
+            $wcProduct->set_short_description($product->Description);
+            $wcProduct->set_description($product->Remarks);
+
+
+            $wcProduct->set_manage_stock( true );
+            $wcProduct->set_stock_quantity( $product->SalesVolume );
+            $wcProduct->set_weight($product->SalesWeight);
+            $wcProduct->set_height($product->SalesHeight);
+            $wcProduct->set_length($product->SalesLength);
+            $wcProduct->set_width($product->SalesWidth);
+
+
             // Save Product
             $wcProduct->save();
 
@@ -308,6 +323,7 @@ class Importer
 
             $this->getImage($product, $wcProduct->get_id());
 
+            $this->assignAttributes($wcProduct->get_id(), $product);
             // Return the outcome
             return $method;
         }
@@ -316,6 +332,55 @@ class Importer
         return $method;
     }
 
+    public function assignAttributes($wcProductId, $product){
+
+        // List of all attributes
+        $newAttrs = [
+            "ModelNo"                   => "model-no",
+            "Type"                      => "shock-type",
+            "CapacityCCM"               => "capacity",
+            "CapacityRange"             => "capacity-range",
+            "CapacityRangeDescription"  => "capacity-description"
+        ];
+
+        // Loop through attributes
+        foreach($newAttrs as $key => $attr) {
+            $term = null;
+
+            // Get term if exists
+            $term = get_term_by("name", strval($product->$key), "pa_" . $attr);
+
+            // Create term and get if doesnt exist
+            if($term === false) {
+                $term = wp_insert_term(strval($product->$key), "pa_" . $attr);
+                $term = get_term_by("name", strval($product->$key), "pa_" . $attr);
+            }
+
+            // Apply the term to the produt
+            wp_set_object_terms($wcProductId, $term->term_id, 'pa_' . $attr, true);
+
+            // Build the term array
+            $data = [
+                'pa_' . $attr => [
+                    'name' => 'pa_' . $attr,
+                    'value' => $term->term_id,
+                    'is_visible' => '1',
+                    'is_taxonomy' => '1'
+                ]
+            ];
+
+            // Get current product attribute data
+            $_product_attributes = get_post_meta($wcProductId, '_product_attributes', TRUE);
+
+            if(!$_product_attributes) {
+                // Create if doesnt exist
+                add_post_meta($wcProductId, '_product_attributes', $data);
+            } else {
+                // Update current data
+                update_post_meta($wcProductId, '_product_attributes', array_merge($_product_attributes, $data));
+            }
+        }
+    }
 
     // Search the product code and updates all item's prices
     public function updateProductPrice($priceItem): string
@@ -409,13 +474,11 @@ class Importer
         ];
 
         return $categoryIds;
-
     }
 
     // Finds or create the category term
     public function findOrCreateTerm($term, $parentTermId = null)
     {
-
         $existingTerm = get_term_by("slug", slugify($term), "product_cat");
 
         if (!$existingTerm) {
@@ -450,7 +513,6 @@ class Importer
     // Creates the term
     public function createTerm($termName, $parentId)
     {
-
         $imgMap = [
             "A.J.S." => "https://hagon-shocks.eagle.brd.ltd/wp-content/uploads/ajs3.png",
             "BMW" => "https://hagon-shocks.eagle.brd.ltd/wp-content/uploads/bmw3.png",
@@ -580,7 +642,6 @@ class Importer
     // Create the row for the import
     public function createRecord()
     {
-
         global $wpdb;
 
         $table_name = $wpdb->prefix . BMHS_TABLE_NAME;
@@ -625,3 +686,5 @@ class Importer
 
 
 }
+
+

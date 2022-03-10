@@ -19,3 +19,30 @@ Need to swap it so it reads the json in batches
 1) Initial request to create and return the row ID, and count the products.
 
 2) Create function to read a batch, then send a repsonse, loop till complete
+
+
+
+
+
+
+-----------------------------------------------
+
+
+
+
+      "Description": Short Description
+      "Remarks": Long Description
+
+      "SalesVolume": is this the stock qty?
+
+      "SalesLength":  Product attribute,
+      "SalesWidth":  Product attribute,
+      "SalesHeight":  Product attribute,
+      "SalesWeight":   Product attribute
+
+,
+      "ModelNo": Product attribute,   -> model No
+      "Type":  Product attribute,   -> type
+      "CapacityCCM": Product attribute, -> capacity
+      "CapacityRange": Product attribute,, ->capacity-range
+      "CapacityRangeDescription": Product attribute, -> capacity->descr
